@@ -1,35 +1,43 @@
 from ordreset import d
 
 
-class Partner(d.Model):
-    __tablename__ = 'partner'
+class InterfaceEvent(d.Model):
+    __tablename__ = 'INTERFACE_event'
     __table_args__ = (
-        d.PrimaryKeyConstraint('pa_partner'),)
+        d.PrimaryKeyConstraint('IntCtrlNo'),
+        d.ForeignKeyConstraint(
+            ['ProcState', 'ProcResult'],
+            ['BASE_ProcStateCodes.ProcStateCode', 'BASE_ErrorCodes.pa_partner',
+             'order_str.oh_order', 'order_str.os_store_loc']),
+        )
 
-    id_ = d.Column('pa_partner', d.Text)
+    id_ = d.Column('IntCtrlNo', d.Integer)
 
-    name = d.Column('pa_name', d.Text)
+    event_date_time = d.Column('EventDateTime', d.DateTime)
+    partner = d.Column('PartnerId', d.Text)
+    message_type = d.Column('Message_Type', d.Text)
+    proc_state_id = d.Column('ProcState', d.Integer)
+    proc_result_id = d.Column('ProcResult', d.Integer)
+    proc_msg = d.Column('ProcMessage', d.Text)
+    proc_env = d.Column('ProcEnv', d.Text)
 
-    def __init__(self, id_, name=None):
+    proc_state = d.relationship('ProcStateCodes')
+    proc_result = d.relationship('ErrorCodes')
+
+    def __init__(self, id_, event_date_time=None, partner=None,
+            message_type=None, ):
         self.id_ = id_
         self.name = name
 
 
-class OrderHeader(d.Model):
-    __tablename__ = 'order_hdr'
+class ProcStateCodes(d.Model):
+    __tablename__ = 'BASE_ProcStateCodes'
     __table_args__ = (
-        d.PrimaryKeyConstraint('en_entity', 'pa_partner', 'oh_order'),
-        d.ForeignKeyConstraint(['pa_partner'], ['partner.pa_partner']))
+        d.PrimaryKeyConstraint('ProcStateCode'),
+        )
 
-    entity = d.Column('en_entity', d.Text)
-    partner_id = d.Column('pa_partner', d.Text)
-    order_id = d.Column('oh_order', d.Text)
-
-    status = d.Column('oh_status', d.Text)
-    date_amended = d.Column('oh_amend', d.Date)
-    date_created = d.Column('oh_created', d.Date)
-
-    partner = d.relationship('Partner')
+    id_ = d.Column('ProcStateCode', d.Integer)
+    desc = d.Column('ProcStateDesc', d.Text)
 
     def __init__(self, entity, partner, order_id, status=None,
                  date_amended=None, date_created=None):
@@ -41,85 +49,20 @@ class OrderHeader(d.Model):
         self.date_created = date_created
 
 
-class OrderStore(d.Model):
-    __tablename__ = 'order_str'
+class ErrorCodes(d.Model):
+    __tablename__ = 'BASE_ErrorCodes'
     __table_args__ = (
-        d.PrimaryKeyConstraint(
-            'en_entity', 'pa_partner', 'oh_order', 'os_store_loc'),
-        d.ForeignKeyConstraint(
-            ['en_entity', 'pa_partner', 'oh_order'],
-            ['order_hdr.en_entity', 'order_hdr.pa_partner',
-             'order_hdr.oh_order']))
+        d.PrimaryKeyConstraint('ErrorCode'),
+        )
 
-    entity = d.Column('en_entity', d.Text)
-    partner_id = d.Column('pa_partner', d.Text)
-    order_id = d.Column('oh_order', d.Text)
-    store_loc = d.Column('os_store_loc', d.Text)
-
-    status = d.Column('os_status', d.Text)
-    sys_id = d.Column('os_sys_id', d.Integer)
-
-    order_header = d.relationship('OrderHeader')
+    # In the underlying DB this is actually declared as data type ``Text``
+    # since Kane set it up that way. I however, use ``Integer`` here for
+    # consistency to the tables referencing this column.
+    id_ = d.Column('ErrorCode', d.Integer)
+    desc = d.Column('ErrorDesc', d.Text)
 
     def __init__(self, order_header, store_loc, status=None, sys_id=None):
         self.order_header = order_header
         self.store_loc = store_loc
         self.status = status
         self.sys_id = sys_id
-
-
-class OrderSSCC(d.Model):
-    __tablename__ = 'order_sscc'
-    __table_args__ = (
-        d.PrimaryKeyConstraint(
-            'en_entity', 'pa_partner', 'oh_order', 'os_store_loc', 'oc_sscc'),
-        d.ForeignKeyConstraint(
-            ['en_entity', 'pa_partner', 'oh_order', 'os_store_loc'],
-            ['order_str.en_entity', 'order_str.pa_partner',
-             'order_str.oh_order', 'order_str.os_store_loc']))
-
-    entity = d.Column('en_entity', d.Text)
-    partner_id = d.Column('pa_partner', d.Text)
-    order_id = d.Column('oh_order', d.Text)
-    store_loc = d.Column('os_store_loc', d.Text)
-    sscc_id = d.Column('oc_sscc', d.Text)
-
-    date_closed = d.Column('oc_date_closed', d.Date)
-    # Seconds after midnight.
-    time_closed = d.Column('oc_time_closed', d.Integer)
-
-    order_store = d.relationship('OrderStore')
-
-    def __init__(self, order_store, sscc_id, date_closed=None,
-                 time_closed=None):
-        self.order_store = order_store
-        self.sscc_id = sscc_id
-        self.date_closed = date_closed
-        self.time_closed = time_closed
-
-
-class OrderLine(d.Model):
-    __tablename__ = 'order_line'
-    __table_args__ = (
-        d.PrimaryKeyConstraint(
-            'en_entity', 'pa_partner', 'oh_order', 'os_store_loc',
-            'ol_line_seq'),
-        d.ForeignKeyConstraint(
-            ['en_entity', 'pa_partner', 'oh_order', 'os_store_loc'],
-            ['order_str.en_entity', 'order_str.pa_partner',
-             'order_str.oh_order', 'order_str.os_store_loc']))
-
-    entity = d.Column('en_entity', d.Text)
-    partner_id = d.Column('pa_partner', d.Text)
-    order_id = d.Column('oh_order', d.Text)
-    store_loc = d.Column('os_store_loc', d.Text)
-    line_seq = d.Column('ol_line_seq', d.Integer)
-
-    qty_picked = d.Column('ol_qty_picked', d.Integer)
-
-    order_store = d.relationship('OrderStore')
-
-    def __init__(self, order_store, line_seq, qty_picked=None):
-        self.order_store = order_store
-        self.line_seq = line_seq
-        self.qty_picked = qty_picked
