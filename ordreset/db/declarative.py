@@ -16,10 +16,11 @@ class InterfaceEvent(d.Model):
     event_date_time = d.Column('EventDateTime', d.DateTime)
     partner = d.Column('PartnerId', d.Text)
     message_type = d.Column('Message_Type', d.Text)
+    xml = d.Column('Payload', d.Text)
+    proc_env = d.Column('ProcEnv', d.Text)
     proc_state_id = d.Column('ProcState', d.Integer)
     proc_result_id = d.Column('ProcResult', d.Integer)
     proc_msg = d.Column('ProcMessage', d.Text)
-    proc_env = d.Column('ProcEnv', d.Text)
 
     proc_state = d.relationship('ProcStateCodes')
     proc_result = d.relationship('ErrorCodes')
