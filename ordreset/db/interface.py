@@ -18,8 +18,8 @@ def get_orders():
             decl.InterfaceEvent.proc_msg.label('procMsg'),
             decl.ErrorCodes.desc.label('procResDesc'),
             )
-        .join(ProcStateCodes)
-        .outerjoin(ErrorCodes)
+        .join(decl.ProcStateCodes)
+        .outerjoin(decl.ErrorCodes)
         .order_by('eventTime'))
 
 
@@ -28,8 +28,10 @@ def get_order(id_):
     return _to_list_of_dicts(d.session
         .query(
             decl.InterfaceEvent.id_.label('id'),
-            decl.InterfaceEvent.event_date_time.label('eventTime'),
-            ))
+            decl.InterfaceEvent.xml.label('xml'),
+            )
+        .filter(decl.InterfaceEvent.id_ == id_)
+        .one())
 
 
 # TODO
@@ -43,7 +45,6 @@ def update_order(id_, xml=None, resubmit=False, cancel=False):
     if resubmit:
         event.proc_state_id = 1
         event.proc_result_id = 0
-    # TODO. Check with David if that's what he wants.
     if cancel:
         event.proc_state_id = 9
     d.session.commit()

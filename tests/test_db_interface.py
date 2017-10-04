@@ -6,38 +6,48 @@ from ordreset import d
 from ordreset.db import declarative as decl, interface
 
 
-class TestGetPiecesPerOrder:
-    def test_group_by(self):
-        pa1 = decl.Partner('pa1')
+class TestGetOrders:
+    def test_ok(self):
+        psc1 = decl.ProcStateCodes(1, 'psc1')
+        psc2 = decl.ProcStateCodes(2, 'psc2')
 
-        oh1 = decl.OrderHeader('en1', pa1, 'or1')
-        oh2 = decl.OrderHeader('en1', pa1, 'or2')
+        ec1 = decl.ErrorCodes(11, 'ec1')
+        ec2 = decl.ErrorCodes(12, 'ec2')
 
-        os1 = decl.OrderStore(oh1, 'sl1')
-        os2 = decl.OrderStore(oh1, 'sl2')
-        os3 = decl.OrderStore(oh2, 'sl1')
+        d.session.add(decl.InterfaceEvent(1, psc1, ec1))
+        d.session.add(decl.InterfaceEvent(2, psc2, ec2))
+        d.session.add(decl.InterfaceEvent(3, psc1))
+        d.session.add(decl.InterfaceEvent(4))
 
-        d.session.add(decl.OrderLine(os1, 1, 1))
-        d.session.add(decl.OrderLine(os1, 2, 2))
-        d.session.add(decl.OrderLine(os2, 1, 4))
-        d.session.add(decl.OrderLine(os2, 2, 8))
-        d.session.add(decl.OrderLine(os3, 1, 16))
-        d.session.add(decl.OrderLine(os3, 2, 32))
-
-        assert interface._get_pieces_per_order('pa1', []) == {
-            'orders': 3, 'units': 63}
-
-    def test_order_store_without_line(self):
-        pa1 = decl.Partner('pa1')
-
-        oh1 = decl.OrderHeader('en1', pa1, 'or1')
-        oh2 = decl.OrderHeader('en1', pa1, 'or2')
-
-        os1 = decl.OrderStore(oh1, 'sl1')
-        os2 = decl.OrderStore(oh2, 'sl2')
-        d.session.add(os2)
-
-        d.session.add(decl.OrderLine(os1, 1, 1))
-
-        assert (
-            interface._get_pieces_per_order('pa1', [])['orders'] == 1)
+        assert interface.get_orders() == [
+                {
+                    'id': 1,
+                    'eventTime': None,
+                    'partner': None,
+                    'msgType': None,
+                    'procEnv': None,
+                    'procStateDesc': 'psc1',
+                    'procMsg': None,
+                    'procResDesc': 'ec1',
+                },
+                {
+                    'id': 2,
+                    'eventTime': None,
+                    'partner': None,
+                    'msgType': None,
+                    'procEnv': None,
+                    'procStateDesc': 'psc2',
+                    'procMsg': None,
+                    'procResDesc': 'ec2',
+                },
+                {
+                    'id': 3,
+                    'eventTime': None,
+                    'partner': None,
+                    'msgType': None,
+                    'procEnv': None,
+                    'procStateDesc': 'psc1',
+                    'procMsg': None,
+                    'procResDesc': None,
+                },
+            ]

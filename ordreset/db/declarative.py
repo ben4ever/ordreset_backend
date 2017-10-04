@@ -6,9 +6,11 @@ class InterfaceEvent(d.Model):
     __table_args__ = (
         d.PrimaryKeyConstraint('IntCtrlNo'),
         d.ForeignKeyConstraint(
-            ['ProcState', 'ProcResult'],
-            ['BASE_ProcStateCodes.ProcStateCode', 'BASE_ErrorCodes.pa_partner',
-             'order_str.oh_order', 'order_str.os_store_loc']),
+            ['ProcState'],
+            ['BASE_ProcStateCodes.ProcStateCode']),
+        d.ForeignKeyConstraint(
+            ['ProcResult'],
+            ['BASE_ErrorCodes.ErrorCode']),
         )
 
     id_ = d.Column('IntCtrlNo', d.Integer)
@@ -25,10 +27,18 @@ class InterfaceEvent(d.Model):
     proc_state = d.relationship('ProcStateCodes')
     proc_result = d.relationship('ErrorCodes')
 
-    def __init__(self, id_, event_date_time=None, partner=None,
-            message_type=None, ):
+    def __init__(self, id_, proc_state=None, proc_result=None,
+            event_date_time=None, partner=None, message_type=None, xml=None,
+            proc_env=None, proc_msg=None):
         self.id_ = id_
-        self.name = name
+        self.proc_state = proc_state
+        self.proc_result = proc_result
+        self.event_date_time = event_date_time
+        self.partner = partner
+        self.message_type = message_type
+        self.xml = xml
+        self.proc_env = proc_env
+        self.proc_msg = proc_msg
 
 
 class ProcStateCodes(d.Model):
@@ -40,14 +50,9 @@ class ProcStateCodes(d.Model):
     id_ = d.Column('ProcStateCode', d.Integer)
     desc = d.Column('ProcStateDesc', d.Text)
 
-    def __init__(self, entity, partner, order_id, status=None,
-                 date_amended=None, date_created=None):
-        self.entity = entity
-        self.partner = partner
-        self.order_id = order_id
-        self.status = status
-        self.date_amended = date_amended
-        self.date_created = date_created
+    def __init__(self, id_, desc=None):
+        self.id_ = id_
+        self.desc = desc
 
 
 class ErrorCodes(d.Model):
@@ -62,8 +67,6 @@ class ErrorCodes(d.Model):
     id_ = d.Column('ErrorCode', d.Integer)
     desc = d.Column('ErrorDesc', d.Text)
 
-    def __init__(self, order_header, store_loc, status=None, sys_id=None):
-        self.order_header = order_header
-        self.store_loc = store_loc
-        self.status = status
-        self.sys_id = sys_id
+    def __init__(self, id_, desc=None):
+        self.id_ = id_
+        self.desc = desc
