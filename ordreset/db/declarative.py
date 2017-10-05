@@ -21,8 +21,8 @@ class InterfaceEvent(d.Model):
     xml = d.Column('Payload', d.Text)
     proc_env = d.Column('ProcEnv', d.Text)
     proc_state_id = d.Column('ProcState', d.Integer)
-    proc_result_id = d.Column('ProcResult', d.Integer)
     proc_msg = d.Column('ProcMessage', d.Text)
+    proc_result_id = d.Column('ProcResult', d.Integer)
 
     proc_state = d.relationship('ProcStateCodes')
     proc_result = d.relationship('ErrorCodes')

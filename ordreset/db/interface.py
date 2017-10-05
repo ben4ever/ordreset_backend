@@ -2,12 +2,8 @@ from ordreset import d
 from ordreset.db import declarative as decl
 
 
-def _to_list_of_dicts(rows):
-    return [i._asdict() for i in rows]
-
-
 def get_orders():
-    return _to_list_of_dicts(d.session
+    res = (d.session
         .query(
             decl.InterfaceEvent.id_.label('id'),
             decl.InterfaceEvent.event_date_time.label('eventTime'),
@@ -21,17 +17,28 @@ def get_orders():
         .join(decl.ProcStateCodes)
         .outerjoin(decl.ErrorCodes)
         .order_by('eventTime'))
+    return [i._asdict() for i in res]
 
 
 # TODO
 def get_order(id_):
-    return _to_list_of_dicts(d.session
+    return (d.session
         .query(
             decl.InterfaceEvent.id_.label('id'),
+            decl.InterfaceEvent.event_date_time.label('eventTime'),
+            decl.InterfaceEvent.partner.label('partner'),
+            decl.InterfaceEvent.message_type.label('msgType'),
             decl.InterfaceEvent.xml.label('xml'),
+            decl.InterfaceEvent.proc_env.label('procEnv'),
+            decl.ProcStateCodes.desc.label('procStateDesc'),
+            decl.InterfaceEvent.proc_msg.label('procMsg'),
+            decl.ErrorCodes.desc.label('procResDesc'),
             )
+        .join(decl.ProcStateCodes)
+        .outerjoin(decl.ErrorCodes)
         .filter(decl.InterfaceEvent.id_ == id_)
-        .one())
+        .one()
+        ._asdict())
 
 
 # TODO
@@ -48,3 +55,5 @@ def update_order(id_, xml=None, resubmit=False, cancel=False):
     if cancel:
         event.proc_state_id = 9
     d.session.commit()
+
+    return get_order(id_)
