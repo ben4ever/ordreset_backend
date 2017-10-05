@@ -14,16 +14,15 @@ class Order(Resource):
     def get(self, order_id):
         return interface.get_order(order_id)
 
-    def post(self, order_id):
+    def put(self, order_id):
         data = request.get_json()
-        fields = {'xml': None, 'resubmit': None, 'cancel': None}
+        fields = {'xml': None, 'resubmit': False, 'cancel': False}
         for key in fields.keys():
             if key in data:
                 fields[key] = data[key]
 
         return interface.update_order(
-                id_=order_id, xml=fields['xml'], resubmit=fields['resubmit'],
-                cancel=fields['cancel'])
+                id_=order_id, **fields)
 
 
 api.add_resource(Orders, '/orders')

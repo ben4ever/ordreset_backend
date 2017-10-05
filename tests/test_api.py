@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 import json
 
 import pytest
@@ -15,44 +15,85 @@ def call_and_unpack(client):
     return call
 
 
-def test_get_partners(call_and_unpack):
-    d.session.add(decl.Partner('pa1', 'name1'))
-    d.session.add(decl.Partner('pa2', 'name2'))
+def test_get_orders(call_and_unpack):
+    psc1 = decl.ProcStateCodes(1, 'psc1')
+    psc2 = decl.ProcStateCodes(2, 'psc2')
 
-    assert call_and_unpack('/partners') == [
-            {'id': 'pa1', 'name': 'name1'},
-            {'id': 'pa2', 'name': 'name2'},
+    ec1 = decl.ErrorCodes(11, 'ec1')
+    ec2 = decl.ErrorCodes(12, 'ec2')
+
+    d.session.add(decl.InterfaceEvent(1, psc1, ec1))
+    d.session.add(decl.InterfaceEvent(2, psc2, ec2))
+
+    assert call_and_unpack('/orders') == [
+            {
+                'id': 1,
+                'eventTime': None,
+                'partner': None,
+                'msgType': None,
+                'procEnv': None,
+                'procStateDesc': 'psc1',
+                'procMsg': None,
+                'procResDesc': 'ec1',
+            },
+            {
+                'id': 2,
+                'eventTime': None,
+                'partner': None,
+                'msgType': None,
+                'procEnv': None,
+                'procStateDesc': 'psc2',
+                'procMsg': None,
+                'procResDesc': 'ec2',
+            },
         ]
 
-def test_get_data(call_and_unpack):
-    pa1 = decl.Partner('pa1')
 
-    oh1 = decl.OrderHeader('en1', pa1, 'or1', '')
-    oh2 = decl.OrderHeader('en1', pa1, 'or2', '')
-    oh3 = decl.OrderHeader('en1', pa1, 'or3', '')
-    oh4 = decl.OrderHeader('en1', pa1, 'or4', '', date_created=date.today())
-    oh5 = decl.OrderHeader('en1', pa1, 'or5', '',
-                           date_created=date(2017, 1, 1))
+def test_get_order(call_and_unpack):
+    psc1 = decl.ProcStateCodes(1, 'psc1')
 
-    os1 = decl.OrderStore(oh1, 'sl1', '', 1)
-    os2 = decl.OrderStore(oh2, 'sl1', '')
-    os3 = decl.OrderStore(oh3, 'sl1', 'P')
-    os4 = decl.OrderStore(oh4, 'sl1', '')
-    os5 = decl.OrderStore(oh5, 'sl1', '')
+    ec1 = decl.ErrorCodes(11, 'ec1')
 
-    d.session.add(decl.OrderLine(os1, 1, 1))
-    d.session.add(decl.OrderLine(os2, 1, 2))
-    d.session.add(decl.OrderLine(os3, 1, 4))
-    d.session.add(decl.OrderLine(os4, 1, 8))
-    d.session.add(decl.OrderLine(os5, 1, 16))
+    d.session.add(decl.InterfaceEvent(
+        1, psc1, ec1, datetime(2017, 1, 1), 'partner1',
+        'msgtype1', '<foo></foo>', 'PROD', 'errmsg1'))
 
-    r = call_and_unpack('/partners/pa1/data')
-    del r['chartData']
-    del r['conversion']
-    assert r == {
-        'released': {'orders': 1, 'units': 1},
-        'unreleased': {'orders': 3, 'units': 26},
-        'packed': {'orders': 1, 'units': 4},
-        'openToday': {'orders': 1, 'units': 8},
-        'openOld': {'orders': 1, 'units': 16},
+    assert call_and_unpack('/orders/1') == {
+            'id': 1,
+            'eventTime': '2017-01-01T00:00:00',
+            'partner': 'partner1',
+            'msgType': 'msgtype1',
+            'xml': '<foo></foo>',
+            'procEnv': 'PROD',
+            'procStateDesc': 'psc1',
+            'procMsg': 'errmsg1',
+            'procResDesc': 'ec1',
+        }
+
+
+def test_update_order(client):
+    psc1 = decl.ProcStateCodes(1, 'psc1')
+
+    d.session.add(decl.InterfaceEvent(1, psc1, xml='<foo></foo>'))
+
+    resp = client.put(
+        '/orders/1',
+        data=json.dumps(
+            {'xml': '<bar></bar>'},
+            indent=2,
+            sort_keys=True
+            ),
+        content_type='application/json',
+        )
+
+    assert json.loads(resp.get_data().decode()) == {
+            'id': 1,
+            'eventTime': None,
+            'partner': None,
+            'msgType': None,
+            'xml': '<bar></bar>',
+            'procEnv': None,
+            'procStateDesc': 'psc1',
+            'procMsg': None,
+            'procResDesc': None,
         }
