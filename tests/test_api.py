@@ -71,29 +71,71 @@ def test_get_order(call_and_unpack):
         }
 
 
-def test_update_order(client):
-    psc1 = decl.ProcStateCodes(1, 'psc1')
+class TestUpdateOrder:
+    def test_xml(self, client):
+        psc1 = decl.ProcStateCodes(1, 'psc1')
 
-    d.session.add(decl.InterfaceEvent(1, psc1, xml='<foo></foo>'))
+        d.session.add(decl.InterfaceEvent(1, psc1, xml='<foo></foo>'))
 
-    resp = client.put(
-        '/orders/1',
-        data=json.dumps(
-            {'xml': '<bar></bar>'},
-            indent=2,
-            sort_keys=True
-            ),
-        content_type='application/json',
-        )
+        resp = client.put(
+            '/orders/1',
+            data=json.dumps(
+                {'xml': '<bar></bar>'},
+                indent=2,
+                sort_keys=True
+                ),
+            content_type='application/json',
+            )
 
-    assert json.loads(resp.get_data().decode()) == {
-            'id': 1,
-            'eventTime': None,
-            'partner': None,
-            'msgType': None,
-            'xml': '<bar></bar>',
-            'procEnv': None,
-            'procStateDesc': 'psc1',
-            'procMsg': None,
-            'procResDesc': None,
-        }
+        assert json.loads(resp.get_data().decode()) == {
+                'id': 1,
+                'eventTime': None,
+                'partner': None,
+                'msgType': None,
+                'xml': '<bar></bar>',
+                'procEnv': None,
+                'procStateDesc': 'psc1',
+                'procMsg': None,
+                'procResDesc': None,
+            }
+
+    def test_cancel(self, client):
+        d.session.add(decl.ProcStateCodes(9, 'psc9'))
+
+        d.session.add(decl.InterfaceEvent(1))
+
+        resp = client.put(
+            '/orders/1',
+            data=json.dumps(
+                {'cancel': True},
+                indent=2,
+                sort_keys=True
+                ),
+            content_type='application/json',
+            )
+
+        assert json.loads(resp.get_data().decode()) == {
+                'id': 1,
+                'eventTime': None,
+                'partner': None,
+                'msgType': None,
+                'xml': None,
+                'procEnv': None,
+                'procStateDesc': 'psc9',
+                'procMsg': None,
+                'procResDesc': None,
+            }
+
+    def test_no_action(self, client):
+        d.session.add(decl.InterfaceEvent(1))
+
+        with pytest.raises(interface.NoActionError):
+            client.put(
+                '/orders/1',
+                data=json.dumps(
+                    {'foo': True},
+                    indent=2,
+                    sort_keys=True
+                    ),
+                content_type='application/json',
+                )

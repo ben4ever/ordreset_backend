@@ -50,6 +50,8 @@ def get_order(id_):
 
 
 def update_order(id_, xml=None, resubmit=False, cancel=False):
+    if not xml and not resubmit and not cancel:
+        raise NoActionError
     event = decl.InterfaceEvent.query.get(id_)
     if xml:
         event.xml = xml
@@ -61,3 +63,6 @@ def update_order(id_, xml=None, resubmit=False, cancel=False):
     d.session.commit()
 
     return get_order(id_)
+
+class NoActionError(Exception):
+    pass
