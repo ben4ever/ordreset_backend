@@ -77,7 +77,7 @@ class TestUpdateOrder:
 
         d.session.add(decl.InterfaceEvent(1, psc1, xml='<foo></foo>'))
 
-        resp = client.put(
+        resp = client.post(
             '/orders/1',
             data=json.dumps(
                 {'xml': '<bar></bar>'},
@@ -104,7 +104,7 @@ class TestUpdateOrder:
 
         d.session.add(decl.InterfaceEvent(1))
 
-        resp = client.put(
+        resp = client.post(
             '/orders/1',
             data=json.dumps(
                 {'cancel': True},
@@ -130,7 +130,7 @@ class TestUpdateOrder:
         d.session.add(decl.InterfaceEvent(1))
 
         with pytest.raises(interface.NoActionError):
-            client.put(
+            client.post(
                 '/orders/1',
                 data=json.dumps(
                     {'foo': True},

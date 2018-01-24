@@ -14,7 +14,7 @@ class Order(Resource):
     def get(self, order_id):
         return interface.get_order(order_id)
 
-    def put(self, order_id):
+    def post(self, order_id):
         data = request.get_json()
         fields = {'xml': None, 'resubmit': False, 'cancel': False}
         for key in fields.keys():
