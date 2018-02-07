@@ -27,16 +27,6 @@ def test_get_orders(call_and_unpack):
 
     assert call_and_unpack('/orders') == [
             {
-                'id': 1,
-                'eventTime': None,
-                'partner': None,
-                'msgType': None,
-                'procEnv': None,
-                'procStateDesc': 'psc1',
-                'procMsg': None,
-                'procResDesc': 'ec1',
-            },
-            {
                 'id': 2,
                 'eventTime': None,
                 'partner': None,
@@ -45,6 +35,16 @@ def test_get_orders(call_and_unpack):
                 'procStateDesc': 'psc2',
                 'procMsg': None,
                 'procResDesc': 'ec2',
+            },
+            {
+                'id': 1,
+                'eventTime': None,
+                'partner': None,
+                'msgType': None,
+                'procEnv': None,
+                'procStateDesc': 'psc1',
+                'procMsg': None,
+                'procResDesc': 'ec1',
             },
         ]
 

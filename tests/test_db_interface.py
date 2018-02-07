@@ -17,14 +17,14 @@ class TestGetOrders:
 
         assert interface.get_orders() == [
                 {
-                    'id': 1,
+                    'id': 3,
                     'eventTime': None,
                     'partner': None,
                     'msgType': None,
                     'procEnv': None,
                     'procStateDesc': 'psc1',
                     'procMsg': None,
-                    'procResDesc': 'ec1',
+                    'procResDesc': None,
                 },
                 {
                     'id': 2,
@@ -37,14 +37,14 @@ class TestGetOrders:
                     'procResDesc': 'ec2',
                 },
                 {
-                    'id': 3,
+                    'id': 1,
                     'eventTime': None,
                     'partner': None,
                     'msgType': None,
                     'procEnv': None,
                     'procStateDesc': 'psc1',
                     'procMsg': None,
-                    'procResDesc': None,
+                    'procResDesc': 'ec1',
                 },
             ]
 

@@ -25,7 +25,7 @@ def get_orders():
             )
         .join(decl.ProcStateCodes)
         .outerjoin(decl.ErrorCodes)
-        .order_by('eventTime'))
+        .order_by(d.desc('id')))
     return [_serialize_for_json(i._asdict()) for i in res]
 
 
